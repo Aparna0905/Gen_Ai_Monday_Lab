@@ -1,0 +1,144 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "gpuType": "T4",
+      "authorship_tag": "ABX9TyNor4QGQDFYKyXu5TXwvcan",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Aparna0905/Gen_Ai_Monday_Lab/blob/main/Lab%2013\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 3,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "3JyWsBGJ-2Vv",
+        "outputId": "5aea1db6-4f0b-4690-8448-27ebfdc5e3a8"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\n",
+            "Generated Sentences After Training:\n",
+            "\n",
+            "industries improves improves transforming improves\n",
+            "enables is data data data\n",
+            "models improves improves Machine improves\n",
+            "models is data data data\n",
+            "is data data data data\n",
+            "Reinforcement Machine improves improves models\n",
+            "transforming enables is data data\n",
+            "models improves improves data AI\n",
+            "transforming improves improves automation Reinforcement\n",
+            "data data data data data\n"
+          ]
+        }
+      ],
+      "source": [
+        "import random\n",
+        "import numpy as np\n",
+        "\n",
+        "# Dataset\n",
+        "sentences = [\n",
+        "    \"AI is transforming industries\",\n",
+        "    \"Machine learning enables automation\",\n",
+        "    \"Deep learning models generate data\",\n",
+        "    \"Reinforcement learning improves decisions\"\n",
+        "]\n",
+        "\n",
+        "# Vocabulary\n",
+        "words = list(set(\" \".join(sentences).split()))\n",
+        "word_to_index = {w: i for i, w in enumerate(words)}\n",
+        "index_to_word = {i: w for w, i in word_to_index.items()}\n",
+        "\n",
+        "# Parameters\n",
+        "num_words = len(words)\n",
+        "max_len = 5\n",
+        "episodes = 1000\n",
+        "alpha = 0.1   # learning rate\n",
+        "gamma = 0.9   # discount factor\n",
+        "epsilon = 0.2 # exploration\n",
+        "\n",
+        "# Q-table (state = previous word, action = next word)\n",
+        "Q = np.zeros((num_words, num_words))\n",
+        "\n",
+        "# Reward function\n",
+        "def get_reward(generated):\n",
+        "    sentence = \" \".join(generated)\n",
+        "    if sentence in sentences:\n",
+        "        return 10   # perfect match\n",
+        "    elif any(word in sentence for s in sentences for word in s.split()):\n",
+        "        return 1    # partial match\n",
+        "    else:\n",
+        "        return -1   # bad sentence\n",
+        "\n",
+        "# Generate sentence using policy\n",
+        "def generate_sentence():\n",
+        "    state = random.randint(0, num_words-1)\n",
+        "    generated = [index_to_word[state]]\n",
+        "\n",
+        "    for _ in range(max_len-1):\n",
+        "        if random.random() < epsilon:\n",
+        "            action = random.randint(0, num_words-1)\n",
+        "        else:\n",
+        "            action = np.argmax(Q[state])\n",
+        "\n",
+        "        generated.append(index_to_word[action])\n",
+        "        state = action\n",
+        "\n",
+        "    return generated\n",
+        "\n",
+        "# Training (Reinforcement Learning)\n",
+        "for ep in range(episodes):\n",
+        "    state = random.randint(0, num_words-1)\n",
+        "    generated = [index_to_word[state]]\n",
+        "\n",
+        "    for _ in range(max_len-1):\n",
+        "        if random.random() < epsilon:\n",
+        "            action = random.randint(0, num_words-1)\n",
+        "        else:\n",
+        "            action = np.argmax(Q[state])\n",
+        "\n",
+        "        generated.append(index_to_word[action])\n",
+        "        reward = get_reward(generated)\n",
+        "\n",
+        "        # Q-learning update\n",
+        "        Q[state][action] = Q[state][action] + alpha * (\n",
+        "            reward + gamma * np.max(Q[action]) - Q[state][action]\n",
+        "        )\n",
+        "\n",
+        "        state = action\n",
+        "\n",
+        "# Testing Before/After RL\n",
+        "print(\"\\nGenerated Sentences After Training:\\n\")\n",
+        "for _ in range(10):\n",
+        "    print(\" \".join(generate_sentence()))"
+      ]
+    }
+  ]
+}
